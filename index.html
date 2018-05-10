@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required Bootstrap meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Financial App</title>
+
+    <style>
+        .row {
+            margin-top: 20px;
+        }
+
+        .col {
+            padding: 10px;
+        }
+    </style>
+
+    <!-- Bootstrap 4.1.1 CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+          integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <label for="company">Search a company:</label>
+            <div class="input-group">
+                <input id="company" class="form-control"
+                       placeholder="Company's symbol (e.g. aapl for Apple, googl for Google)"
+                       type="text">
+                <span class="input-group-append">
+                    <button class="btn btn-primary" type="button" onclick="search()">Search</button>
+                </span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4 text-center" id="companyLogo"></div>
+            <div class="col-8">
+                <h1 id="companyName"></h1>
+                <p id="companyInfo"></p>
+                <p id="companyCEO"></p>
+            </div>
+        </div>
+        <div class="row">
+            <div id="news" class="col-6"></div>
+            <div id="chart" class="col-6"></div>
+        </div>
+    </div>
+
+    <!-- jQuery 3.3.1 -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+
+    <!-- Bootstrap requirement -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+            crossorigin="anonymous"></script>
+
+    <!-- Bootstrap 4.1.1 plugins -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
+            integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+            crossorigin="anonymous"></script>
+
+    <!-- Google Charts plugin -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script>
+        // Load Google Charts API
+        google.charts.load('current', {
+            'packages': ['corechart']
+        });
+
+        // Setting a default message if a AJAX error happen
+        $(document).ajaxError(function() {
+            alert("An error occurred!");
+        });
+
+        /**
+         * Draw chart that demonstrates the company's stock price variation in the past 30 days.
+         * @param company Company symbol
+         */
+        function drawChart(company) {
+            $.ajax({
+                url: "https://api.iextrading.com/1.0/stock/" + company + "/chart",
+                success: function(result) {
+
+                    let options = {
+                        title: 'Company Performance',
+                        curveType: 'function',
+                        legend: {
+                            position: 'bottom',
+                            hAxis: {
+                                title: "Day"
+                            },
+                            vAxis: {
+                                title: "Stock Value"
+                            }
+                        }
+                    };
+
+                    // Create a DataTable object and add two columns in it
+                    let data = new google.visualization.DataTable();
+                    data.addColumn('date', 'Day');
+                    data.addColumn('number', 'Value');
+
+                    // Add each record in the DataTable object using the each function from jQuery
+                    $.each(result, function(key, record) {
+                        data.addRow([new Date(record.date), record.close]);
+                    });
+
+                    // Using Array.prototype.map
+                    // let rows = result.map(record => { return [new Date(record.date), record.close] } );
+                    // data.addRows(rows);
+
+                    // Draw the chart
+                    let chart = new google.visualization.LineChart(document.getElementById('chart'));
+                    chart.draw(data, options);
+                }
+            });
+        }
+
+        /**
+         * Search company data.
+         * */
+        function search() {
+            $.ajax({
+                url: "https://api.iextrading.com/1.0/stock/" + $("#company").val() + "/company",
+                success: function(result) {
+                    let company = $("#company").val(); // Get the value inside the input
+                    setCompanyName(result.companyName);
+                    setCompanyInfo(result.description);
+                    setCompanyCEO(result.CEO);
+                    setCompanyLogo(company);
+                    setNews(company);
+                    drawChart(company);
+                }
+            });
+        }
+
+        /**
+         * Set the news content inside the respective HTML element.
+         * @param company Company's symbol
+         */
+        function setNews(company) {
+            $.ajax({
+                url: "https://api.iextrading.com/1.0/stock/" + company + "/news/last/5",
+                success: function(result) {
+                    $.each(result, function(key, value) {
+                        $("#news").append("<p><a target='_blank' href='" + value.url + "'>" + value.headline +
+                            " by " + value.source + "</a></p>");
+                    });
+                }
+            });
+        }
+
+        /**
+         * Set the company logo inside the respective HTML element.
+         * @param company Company's symbol
+         */
+        function setCompanyLogo(company) {
+            $.ajax({
+                url: "https://api.iextrading.com/1.0/stock/" + company + "/logo",
+                success: function(result) {
+                    $("#companyLogo").html("<img src=\"" + result.url + "\" alt=\"" + company + "\'s logo\">")
+                }
+            });
+        }
+
+        /**
+         * Set the company name inside the respective HTML element.
+         * @param name Company's name
+         */
+        function setCompanyName(name) {
+            $("#companyName").text(name)
+        }
+
+        /**
+         * Set the company's info inside the respective HTML element.
+         * @param info
+         */
+        function setCompanyInfo(info) {
+            $("#companyInfo").text(info)
+        }
+
+        /**
+         * Set the company's CEO inside the respective HTML element.
+         * @param ceo
+         */
+        function setCompanyCEO(ceo) {
+            $("#companyCEO").text("CEO: " + ceo)
+        }
+    </script>
+</body>
+</html>
