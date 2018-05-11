@@ -3,7 +3,7 @@
 This is a simple Web application that fetches some financial information about a company and shows in a organised
 structure.
 
-![alt text](./app.png)
+![App interface](./app.png)
 
 ## Objective
 
@@ -25,6 +25,8 @@ for the ```Enter``` key)
 * Handle each AJAX error in a different way based on its content. For instance, the AJAX query that fetches the
 company's CEO must be handled differently than the AJAX query that fetches data to plot the chart
 * Play along with Bootstrap components for better aesthetic
+* Optimize the IndexedDB usage (HINT: Use Web Workers, check if the database is already populated)
+* Get and show information about the CEO
 
 ## Live Instance
 
