@@ -15,9 +15,9 @@ outside the class.
 
 ## Improvement suggestions
 
-* Let the user searches using the company's name instead of its symbol
+* ~~Let the user searches using the company's name instead of its symbol~~
+* ~~Fix the news section error that appends news on each company search~~
 * Better alignment of company's logo
-* Fix the news section error that appends news on each company search
 * Allow the users to search when they press the ```Enter``` key (HINT: use the ```<form>``` tag or add a event listener)
 for the ```Enter``` key)
 * Handle each AJAX error in a different way based on its content. For instance, the AJAX query that fetches the
