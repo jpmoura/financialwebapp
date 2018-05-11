@@ -3,6 +3,8 @@
 This is a simple Web application that fetches some financial information about a company and shows in a organised
 structure.
 
+![alt text](./app.png)
+
 ## Objective
 
 The main goal of this web app is to serve as an example for beginners, showing simple ways to use some of the most used
